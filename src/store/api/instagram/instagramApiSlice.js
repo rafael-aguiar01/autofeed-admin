@@ -53,16 +53,16 @@ export const scriptApi = apiSlice.injectEndpoints({
         },
       }),
     }),
-    registerManualPost: builder.mutation({
-      query: ({ body, token }) => ({
-        url: `schedule/manual`,
-        method: 'POST',
-        body: body,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }),
-    }),
+    // registerManualPost: builder.mutation({
+    //   query: ({ body, token }) => ({
+    //     url: `schedule/manual`,
+    //     method: 'POST',
+    //     body: body,
+    //     headers: {
+    //       Authorization: `Bearer ${token}`,
+    //     },
+    //   }),
+    // }),
   }),
 });
 
