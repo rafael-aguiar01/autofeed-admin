@@ -53,13 +53,23 @@ export const scriptApi = apiSlice.injectEndpoints({
         },
       }),
     }),
+    deleteScript: builder.mutation({
+      query: ({ topicId, token }) => ({
+        url: `accounts/topics/${topicId}`,
+        method: "DELETE",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }),
+    }),
   }),
 });
 
 export const { 
   useFetchScriptsQuery,
-  useFetchScheduleByDateQuery, // 🌟 Exportado para alimentar a sua ScheduleTable
+  useFetchScheduleByDateQuery, 
   useGenerateScriptMutation, 
   useSaveScriptMutation,
-  useRegisterManualPostMutation 
+  useRegisterManualPostMutation,
+  useDeleteScriptMutation
 } = scriptApi;
