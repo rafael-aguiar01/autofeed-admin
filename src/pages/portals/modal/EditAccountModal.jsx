@@ -26,7 +26,11 @@ const EditAccountModal = ({ isOpen, onClose, data, token }) => {
     promptManchete: "",
     promptLegenda: "",
     promptReels: "",
-    postModel: 1
+    postModel: 1,
+    // --- NOVOS CAMPOS ---
+    carouselModels: "11, 12, 13",
+    carouselTextsPrompt: "",
+    promptTextPost: ""
   });
 
   // 2. Preenche o formulário quando o modal abre (Sincronização correta do backend para os campos)
@@ -47,7 +51,15 @@ const EditAccountModal = ({ isOpen, onClose, data, token }) => {
         promptManchete: data.promptManchete || "",
         promptLegenda: data.promptLegenda || "",
         promptReels: data.promptReels || "",
-        postModel: data.postModel !== undefined ? data.postModel : 1
+        postModel: data.postModel !== undefined ? data.postModel : 1,
+        
+        // --- TRATAMENTO DOS NOVOS CAMPOS ---
+        // Se vier array do banco [11,12,13], transforma na string "11, 12, 13" para o input
+        carouselModels: data.carouselModels && Array.isArray(data.carouselModels) 
+          ? data.carouselModels.join(", ") 
+          : "11, 12, 13",
+        carouselTextsPrompt: data.carouselTextsPrompt || "",
+        promptTextPost: data.promptTextPost || ""
       });
     }
   }, [data]);
@@ -72,7 +84,7 @@ const EditAccountModal = ({ isOpen, onClose, data, token }) => {
         voiceId: formData.voiceId || null,
         videoFolder: formData.username.trim(), // A pasta de vídeo sempre acompanha o username limpo
         
-        // Mapeamento dos novos campos de design e prompts
+        // Mapeamento dos campos de design e prompts
         fontName: formData.fontName,
         boxColor: formData.boxColor,
         positionManchete: formData.positionManchete,
@@ -80,7 +92,17 @@ const EditAccountModal = ({ isOpen, onClose, data, token }) => {
         promptManchete: formData.promptManchete,
         promptLegenda: formData.promptLegenda,
         promptReels: formData.promptReels,
-        postModel: Number(formData.postModel)
+        postModel: Number(formData.postModel),
+
+        // --- CONVERSÃO REVERSA DOS NOVOS CAMPOS ---
+        // Transforma a string do input "11, 12, 13" de volta para array [11, 12, 13]
+        carouselModels: formData.carouselModels
+          .toString()
+          .split(',')
+          .map(num => Number(num.trim()))
+          .filter(num => !isNaN(num)),
+        carouselTextsPrompt: formData.carouselTextsPrompt,
+        promptTextPost: formData.promptTextPost
       };
 
       await updateAccount({ 
@@ -99,11 +121,11 @@ const EditAccountModal = ({ isOpen, onClose, data, token }) => {
 
   return (
     <Modal
-      activeModal={isOpen} // 🚀 Mantendo o comportamento exigido pelo seu template
+      activeModal={isOpen} 
       onClose={onClose}
       title={`Editar Perfil: ${data?.name || ''}`}
       centered
-      className="max-w-3xl max-h-[90vh] overflow-y-auto" // Adicionado limite de altura e scroll pois o form cresceu bastante
+      className="max-w-3xl max-h-[90vh] overflow-y-auto" 
     >
       <form onSubmit={handleSubmit} className="space-y-4 pr-1">
         {error && <Alert type="danger">Erro ao salvar as alterações.</Alert>}
@@ -275,6 +297,21 @@ const EditAccountModal = ({ isOpen, onClose, data, token }) => {
           </div>
         </div>
 
+        {/* Novo: Modelos do Carrossel (Coloquei abaixo das posições) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Modelos do Carrossel (Capa, Horizontal, Vertical)</label>
+            <input
+              type="text"
+              name="carouselModels"
+              value={formData.carouselModels}
+              onChange={handleChange}
+              placeholder="Ex: 11, 12, 13"
+              className="form-control w-full p-2 border rounded dark:bg-slate-800 dark:border-slate-700 text-sm"
+            />
+          </div>
+        </div>
+
         {/* Box Informativo do Diretório */}
         <div className="pb-1">
           <span className="text-xs text-slate-400 dark:text-slate-500 italic block">
@@ -301,8 +338,32 @@ const EditAccountModal = ({ isOpen, onClose, data, token }) => {
             ></textarea>
           </div>
 
+          {/* Novo: Prompt dos Textos do Carrossel */}
           <div>
-            <label className="block text-sm font-medium mb-1">Prompt da Manchete</label>
+            <label className="block text-sm font-medium mb-1">Prompt de Conteúdo (Carrossel)</label>
+            <textarea 
+              name="carouselTextsPrompt" 
+              value={formData.carouselTextsPrompt} 
+              onChange={handleChange} 
+              className="form-control w-full p-2.5 border rounded dark:bg-slate-800 dark:border-slate-700 text-sm resize-y min-h-[90px]" 
+              placeholder="Extraia os 3 pontos mais importantes para um carrossel..."
+            ></textarea>
+          </div>
+
+          {/* Novo: Prompt de Texto do Post Estático */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Prompt de Conteúdo (Post Estático Único)</label>
+            <textarea 
+              name="promptTextPost" 
+              value={formData.promptTextPost} 
+              onChange={handleChange} 
+              className="form-control w-full p-2.5 border rounded dark:bg-slate-800 dark:border-slate-700 text-sm resize-y min-h-[90px]" 
+              placeholder="Resuma o artigo em uma frase de impacto para colocar na imagem..."
+            ></textarea>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Prompt da Manchete (Geral)</label>
             <textarea 
               name="promptManchete" 
               value={formData.promptManchete} 
@@ -313,7 +374,7 @@ const EditAccountModal = ({ isOpen, onClose, data, token }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Prompt da Legenda</label>
+            <label className="block text-sm font-medium mb-1">Prompt da Legenda (Geral)</label>
             <textarea 
               name="promptLegenda" 
               value={formData.promptLegenda} 

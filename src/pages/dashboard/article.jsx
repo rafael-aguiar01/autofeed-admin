@@ -3,7 +3,6 @@ import { useForm, Controller } from 'react-hook-form';
 import Card from "@/components/ui/Card";
 import Textinput from "@/components/ui/Textinput";
 import Button from "@/components/ui/Button";
-import userAvatar from "@/assets/images/all-img/main-user.png";
 // Substitua pelo slice correto de contas que você tiver criado no seu RTK Query
 import { useCreateAccountMutation } from "../../store/api/instagram/instagramApiSlice"; 
 import { toast } from "react-toastify";
@@ -17,7 +16,6 @@ const Article = () => {
     fbAccount: "",
     fbToken: "",
     voiceId: "",
-    // Novos campos adicionados com valores padrão recomendados
     fontName: "ArchivoBlack-Regular.ttf",
     boxColor: "#1E5A22",
     positionManchete: "top",
@@ -25,7 +23,11 @@ const Article = () => {
     promptManchete: "",
     promptLegenda: "",
     promptReels: "",
-    postModel: 1
+    postModel: 1,
+    // --- NOVOS CAMPOS (Valores Iniciais) ---
+    carouselModels: "11, 12, 13", // Mantemos como string no input para facilitar a digitação
+    carouselTextsPrompt: "",
+    promptTextPost: ""
   });
   
   const [createAccount, { isLoading }] = useCreateAccountMutation();
@@ -53,9 +55,7 @@ const Article = () => {
         fbAccount: accountData.fbAccount,
         fbToken: accountData.fbToken,
         voiceId: accountData.voiceId || null,
-        videoFolder: accountData.username.trim(), // Sempre igual ao username
-        
-        // Novos campos mapeados para a API
+        videoFolder: accountData.username.trim(), 
         fontName: accountData.fontName,
         boxColor: accountData.boxColor,
         positionManchete: accountData.positionManchete,
@@ -63,7 +63,16 @@ const Article = () => {
         promptManchete: accountData.promptManchete,
         promptLegenda: accountData.promptLegenda,
         promptReels: accountData.promptReels,
-        postModel: Number(accountData.postModel)
+        postModel: Number(accountData.postModel),
+
+        // --- TRATAMENTO DOS NOVOS CAMPOS ---
+        // Transforma a string "11, 12, 13" em array numérico [11, 12, 13]
+        carouselModels: accountData.carouselModels
+          .split(',')
+          .map(num => Number(num.trim()))
+          .filter(num => !isNaN(num)), 
+        carouselTextsPrompt: accountData.carouselTextsPrompt,
+        promptTextPost: accountData.promptTextPost
       };
 
       await createAccount({ account: payload, token: tokenFromLocalStorage }).unwrap();
@@ -85,7 +94,10 @@ const Article = () => {
         promptManchete: "",
         promptLegenda: "",
         promptReels: "",
-        postModel: 1
+        postModel: 1,
+        carouselModels: "11, 12, 13",
+        carouselTextsPrompt: "",
+        promptTextPost: ""
       });
 
     } catch (error) {
@@ -172,7 +184,7 @@ const Article = () => {
             </div>
 
             <hr className="my-6 border-slate-200 dark:border-slate-700" />
-            <h5 className="text-lg font-medium text-slate-900 dark:text-white mb-4">Configurações de Áudio e Vídeo (FFmpeg)</h5>
+            <h5 className="text-lg font-medium text-slate-900 dark:text-white mb-4">Configurações de Layout, Áudio e Vídeo</h5>
 
             {/* Bloco 3: Configurações de Design e Áudio */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
@@ -197,7 +209,7 @@ const Article = () => {
                 value={accountData.fontName}
               />
               <Textinput
-                label="Modelo de Post (Estático)"
+                label="Modelo de Post (Estático Único)"
                 name="postModel"
                 id="postModel"
                 type="number"
@@ -260,6 +272,20 @@ const Article = () => {
               </div>
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                {/* Novo: Modelos do Carrossel */}
+                <Textinput
+                  label="Modelos do Carrossel (Capa, Horizontal, Vertical)"
+                  name="carouselModels"
+                  id="carouselModels"
+                  type="text"
+                  placeholder="Ex: 11, 12, 13"
+                  register={register}
+                  onChange={handleInputChange}
+                  value={accountData.carouselModels}
+                />
+            </div>
+
             <hr className="my-6 border-slate-200 dark:border-slate-700" />
             <h5 className="text-lg font-medium text-slate-900 dark:text-white mb-4">Prompts da Inteligência Artificial</h5>
 
@@ -276,8 +302,32 @@ const Article = () => {
                 ></textarea>
               </div>
 
+              {/* Novo: Prompt dos Textos do Carrossel */}
               <div className="flex flex-col space-y-2">
-                <label className="form-label font-medium text-slate-700 dark:text-slate-300">Prompt da Manchete</label>
+                <label className="form-label font-medium text-slate-700 dark:text-slate-300">Prompt de Conteúdo (Carrossel)</label>
+                <textarea 
+                  name="carouselTextsPrompt" 
+                  value={accountData.carouselTextsPrompt} 
+                  onChange={handleInputChange} 
+                  className="form-control bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-3 rounded-lg text-sm w-full resize-y min-h-[100px]" 
+                  placeholder="Extraia os 3 pontos mais importantes para um carrossel..."
+                ></textarea>
+              </div>
+
+              {/* Novo: Prompt de Texto do Post Estático */}
+              <div className="flex flex-col space-y-2">
+                <label className="form-label font-medium text-slate-700 dark:text-slate-300">Prompt de Conteúdo (Post Estático Único)</label>
+                <textarea 
+                  name="promptTextPost" 
+                  value={accountData.promptTextPost} 
+                  onChange={handleInputChange} 
+                  className="form-control bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-3 rounded-lg text-sm w-full resize-y min-h-[100px]" 
+                  placeholder="Resuma o artigo em uma frase de impacto para colocar na imagem..."
+                ></textarea>
+              </div>
+
+              <div className="flex flex-col space-y-2">
+                <label className="form-label font-medium text-slate-700 dark:text-slate-300">Prompt da Manchete (Geral)</label>
                 <textarea 
                   name="promptManchete" 
                   value={accountData.promptManchete} 
@@ -288,7 +338,7 @@ const Article = () => {
               </div>
 
               <div className="flex flex-col space-y-2">
-                <label className="form-label font-medium text-slate-700 dark:text-slate-300">Prompt da Legenda</label>
+                <label className="form-label font-medium text-slate-700 dark:text-slate-300">Prompt da Legenda (Geral)</label>
                 <textarea 
                   name="promptLegenda" 
                   value={accountData.promptLegenda} 
