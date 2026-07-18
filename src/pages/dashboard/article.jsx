@@ -16,7 +16,16 @@ const Article = () => {
     igToken: "",
     fbAccount: "",
     fbToken: "",
-    voiceId: ""
+    voiceId: "",
+    // Novos campos adicionados com valores padrão recomendados
+    fontName: "ArchivoBlack-Regular.ttf",
+    boxColor: "#1E5A22",
+    positionManchete: "top",
+    positionCredits: "bottom",
+    promptManchete: "",
+    promptLegenda: "",
+    promptReels: "",
+    postModel: 1
   });
   
   const [createAccount, { isLoading }] = useCreateAccountMutation();
@@ -36,7 +45,6 @@ const Article = () => {
 
   const handleSubmitAccount = async () => {
     try {
-      // O payload envia o videoFolder idêntico ao username automaticamente
       const payload = {
         username: accountData.username.trim(),
         name: accountData.name,
@@ -45,13 +53,22 @@ const Article = () => {
         fbAccount: accountData.fbAccount,
         fbToken: accountData.fbToken,
         voiceId: accountData.voiceId || null,
-        videoFolder: accountData.username.trim() // 🌟 Sempre igual ao username
+        videoFolder: accountData.username.trim(), // Sempre igual ao username
+        
+        // Novos campos mapeados para a API
+        fontName: accountData.fontName,
+        boxColor: accountData.boxColor,
+        positionManchete: accountData.positionManchete,
+        positionCredits: accountData.positionCredits,
+        promptManchete: accountData.promptManchete,
+        promptLegenda: accountData.promptLegenda,
+        promptReels: accountData.promptReels,
+        postModel: Number(accountData.postModel)
       };
 
       await createAccount({ account: payload, token: tokenFromLocalStorage }).unwrap();
       toast.success("Conta do Instagram cadastrada com sucesso!");
       
-      // Reseta os campos após o sucesso
       reset();
       setAccountData({
         username: "",
@@ -60,7 +77,15 @@ const Article = () => {
         igToken: "",
         fbAccount: "",
         fbToken: "",
-        voiceId: ""
+        voiceId: "",
+        fontName: "ArchivoBlack-Regular.ttf",
+        boxColor: "#1E5A22",
+        positionManchete: "top",
+        positionCredits: "bottom",
+        promptManchete: "",
+        promptLegenda: "",
+        promptReels: "",
+        postModel: 1
       });
 
     } catch (error) {
@@ -71,32 +96,11 @@ const Article = () => {
 
   return (
     <div>
-      {/* Card Superior */}
-      <Card>
-        <div className="grid xl:grid-cols-3 lg:grid-cols-3 md:grid-cols-3 grid-cols-1 gap-5 place-content-center">
-          <div className="flex space-x-4 h-full items-center rtl:space-x-reverse">
-            <div className="flex-none">
-              <div className="h-20 w-20 rounded-full">
-                <img src={userAvatar} alt="" className="w-full h-full" />
-              </div>
-            </div>
-            <div className="flex-1">
-              <h4 className="text-xl font-medium mb-2">
-                <span className="block">Autofeed Engine</span>
-              </h4>
-              <p className="text-sm text-slate-500 dark:text-slate-300 mb-2">
-                Gerencie e provisione novas automações de Reels por perfil.
-              </p>
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      {/* Card do Formulário de Cadastro */}
       <Card title="Cadastrar Perfil do Instagram">
         <form onSubmit={handleSubmit(handleSubmitAccount)}>
           <div className="space-y-4">
             
+            {/* Bloco 1: Dados Básicos */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Textinput
                 label="Nome do Perfil/Campanha"
@@ -113,13 +117,14 @@ const Article = () => {
                 name="username"
                 id="username"
                 type="text"
-                placeholder="Ex: apoio_adeildo (Define também a pasta de vídeos)"
+                placeholder="Ex: apoio_adeildo"
                 register={register}
                 onChange={handleInputChange}
                 value={accountData.username}
               />
             </div>
 
+            {/* Bloco 2: Tokens Sociais */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <Textinput
                 label="Instagram Account ID (API)"
@@ -149,7 +154,7 @@ const Article = () => {
                 name="fbAccount"
                 id="fbAccount"
                 type="text"
-                placeholder="ID numérico da página do Facebook vinculada"
+                placeholder="ID numérico da página do Facebook"
                 register={register}
                 onChange={handleInputChange}
                 value={accountData.fbAccount}
@@ -166,7 +171,11 @@ const Article = () => {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <hr className="my-6 border-slate-200 dark:border-slate-700" />
+            <h5 className="text-lg font-medium text-slate-900 dark:text-white mb-4">Configurações de Áudio e Vídeo (FFmpeg)</h5>
+
+            {/* Bloco 3: Configurações de Design e Áudio */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
               <Textinput
                 label="Voice ID (ElevenLabs)"
                 name="voiceId"
@@ -177,15 +186,116 @@ const Article = () => {
                 onChange={handleInputChange}
                 value={accountData.voiceId}
               />
-              
-              {/* Box Informativo para deixar claro visualmente */}
-              <div className="flex flex-col justify-end pb-2">
-                <span className="text-xs text-slate-400 dark:text-slate-500 italic block">
-                  ℹ️ A pasta de assets/vídeos em background será vinculada automaticamente como: 
-                  <strong className="text-blue-500 ml-1">
-                    {accountData.username ? `src/shared/assets/videos/${accountData.username.trim()}` : "(Aguardando username)"}
-                  </strong>
-                </span>
+              <Textinput
+                label="Fonte do Texto"
+                name="fontName"
+                id="fontName"
+                type="text"
+                placeholder="Ex: ArchivoBlack-Regular.ttf"
+                register={register}
+                onChange={handleInputChange}
+                value={accountData.fontName}
+              />
+              <Textinput
+                label="Modelo de Post (Estático)"
+                name="postModel"
+                id="postModel"
+                type="number"
+                placeholder="Ex: 1"
+                register={register}
+                onChange={handleInputChange}
+                value={accountData.postModel}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+              {/* Color Picker Visual */}
+              <div className="flex flex-col space-y-2">
+                <label className="form-label font-medium text-slate-700 dark:text-slate-300">Cor da Caixa do Texto</label>
+                <div className="flex space-x-2 items-center">
+                  <input 
+                    type="color" 
+                    name="boxColor" 
+                    value={accountData.boxColor} 
+                    onChange={handleInputChange} 
+                    className="h-10 w-10 border-0 rounded cursor-pointer bg-transparent" 
+                  />
+                  <input 
+                    type="text" 
+                    name="boxColor" 
+                    value={accountData.boxColor} 
+                    onChange={handleInputChange} 
+                    className="form-control bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-2 rounded-lg text-sm flex-1" 
+                    placeholder="#1E5A22" 
+                  />
+                </div>
+              </div>
+
+              {/* Seletor de Posição da Manchete */}
+              <div className="flex flex-col space-y-2">
+                <label className="form-label font-medium text-slate-700 dark:text-slate-300">Posição da Manchete</label>
+                <select 
+                  name="positionManchete" 
+                  value={accountData.positionManchete} 
+                  onChange={handleInputChange} 
+                  className="form-control bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-2.5 rounded-lg text-sm w-full"
+                >
+                  <option value="top">Topo (Top)</option>
+                  <option value="bottom">Rodapé (Bottom)</option>
+                </select>
+              </div>
+
+              {/* Seletor de Posição dos Créditos */}
+              <div className="flex flex-col space-y-2">
+                <label className="form-label font-medium text-slate-700 dark:text-slate-300">Posição dos Créditos</label>
+                <select 
+                  name="positionCredits" 
+                  value={accountData.positionCredits} 
+                  onChange={handleInputChange} 
+                  className="form-control bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-2.5 rounded-lg text-sm w-full"
+                >
+                  <option value="top">Topo (Top)</option>
+                  <option value="bottom">Rodapé (Bottom)</option>
+                </select>
+              </div>
+            </div>
+
+            <hr className="my-6 border-slate-200 dark:border-slate-700" />
+            <h5 className="text-lg font-medium text-slate-900 dark:text-white mb-4">Prompts da Inteligência Artificial</h5>
+
+            {/* Bloco 4: Textareas para os Prompts (Expansíveis) */}
+            <div className="space-y-4">
+              <div className="flex flex-col space-y-2">
+                <label className="form-label font-medium text-slate-700 dark:text-slate-300">Prompt do Roteiro (Reels)</label>
+                <textarea 
+                  name="promptReels" 
+                  value={accountData.promptReels} 
+                  onChange={handleInputChange} 
+                  className="form-control bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-3 rounded-lg text-sm w-full resize-y min-h-[100px]" 
+                  placeholder="Escreva um roteiro narrado de 30 a 45 segundos..."
+                ></textarea>
+              </div>
+
+              <div className="flex flex-col space-y-2">
+                <label className="form-label font-medium text-slate-700 dark:text-slate-300">Prompt da Manchete</label>
+                <textarea 
+                  name="promptManchete" 
+                  value={accountData.promptManchete} 
+                  onChange={handleInputChange} 
+                  className="form-control bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-3 rounded-lg text-sm w-full resize-y min-h-[80px]" 
+                  placeholder="Crie uma manchete curta e impactante baseada no texto..."
+                ></textarea>
+              </div>
+
+              <div className="flex flex-col space-y-2">
+                <label className="form-label font-medium text-slate-700 dark:text-slate-300">Prompt da Legenda</label>
+                <textarea 
+                  name="promptLegenda" 
+                  value={accountData.promptLegenda} 
+                  onChange={handleInputChange} 
+                  className="form-control bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-3 rounded-lg text-sm w-full resize-y min-h-[80px]" 
+                  placeholder="Crie uma legenda engajadora para o Instagram sobre este tema..."
+                ></textarea>
               </div>
             </div>
 
@@ -197,6 +307,7 @@ const Article = () => {
                 isLoading={isLoading} 
               />
             </div>
+
           </div>
         </form>
       </Card>

@@ -10,7 +10,7 @@ import { useUpdateAccountMutation } from "@/store/api/instagram/instagramApiSlic
 const EditAccountModal = ({ isOpen, onClose, data, token }) => {
   const [updateAccount, { isLoading, error }] = useUpdateAccountMutation();
   
-  // 1. Controle de estado nativo idêntico ao do modelo que funciona
+  // 1. Controle de estado nativo com TODOS os novos campos incluídos
   const [formData, setFormData] = useState({
     name: "",
     username: "",
@@ -19,9 +19,17 @@ const EditAccountModal = ({ isOpen, onClose, data, token }) => {
     fbAccount: "",
     fbToken: "",
     voiceId: "",
+    fontName: "ArchivoBlack-Regular.ttf",
+    boxColor: "#1E5A22",
+    positionManchete: "top",
+    positionCredits: "bottom",
+    promptManchete: "",
+    promptLegenda: "",
+    promptReels: "",
+    postModel: 1
   });
 
-  // 2. Preenche o formulário quando o modal abre
+  // 2. Preenche o formulário quando o modal abre (Sincronização correta do backend para os campos)
   useEffect(() => {
     if (data) {
       setFormData({
@@ -32,6 +40,14 @@ const EditAccountModal = ({ isOpen, onClose, data, token }) => {
         fbAccount: data.fbAccount || "",
         fbToken: data.fbToken || "",
         voiceId: data.voiceId || "",
+        fontName: data.fontName || "ArchivoBlack-Regular.ttf",
+        boxColor: data.boxColor || "#1E5A22",
+        positionManchete: data.positionManchete || "top",
+        positionCredits: data.positionCredits || "bottom",
+        promptManchete: data.promptManchete || "",
+        promptLegenda: data.promptLegenda || "",
+        promptReels: data.promptReels || "",
+        postModel: data.postModel !== undefined ? data.postModel : 1
       });
     }
   }, [data]);
@@ -42,7 +58,7 @@ const EditAccountModal = ({ isOpen, onClose, data, token }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 4. Salva no backend
+  // 4. Salva no backend com o payload estendido completo
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -55,6 +71,16 @@ const EditAccountModal = ({ isOpen, onClose, data, token }) => {
         fbToken: formData.fbToken,
         voiceId: formData.voiceId || null,
         videoFolder: formData.username.trim(), // A pasta de vídeo sempre acompanha o username limpo
+        
+        // Mapeamento dos novos campos de design e prompts
+        fontName: formData.fontName,
+        boxColor: formData.boxColor,
+        positionManchete: formData.positionManchete,
+        positionCredits: formData.positionCredits,
+        promptManchete: formData.promptManchete,
+        promptLegenda: formData.promptLegenda,
+        promptReels: formData.promptReels,
+        postModel: Number(formData.postModel)
       };
 
       await updateAccount({ 
@@ -73,15 +99,16 @@ const EditAccountModal = ({ isOpen, onClose, data, token }) => {
 
   return (
     <Modal
-      activeModal={isOpen} // 🚀 O "Pulo do Gato" que o seu template exige para não quebrar o Transition
+      activeModal={isOpen} // 🚀 Mantendo o comportamento exigido pelo seu template
       onClose={onClose}
       title={`Editar Perfil: ${data?.name || ''}`}
       centered
-      className="max-w-3xl"
+      className="max-w-3xl max-h-[90vh] overflow-y-auto" // Adicionado limite de altura e scroll pois o form cresceu bastante
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4 pr-1">
         {error && <Alert type="danger">Erro ao salvar as alterações.</Alert>}
 
+        {/* Bloco 1: Dados Básicos */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-1">Nome do Perfil/Campanha</label>
@@ -91,7 +118,7 @@ const EditAccountModal = ({ isOpen, onClose, data, token }) => {
               value={formData.name}
               onChange={handleChange}
               placeholder="Ex: Apoio Adeildo"
-              className="form-control w-full p-2 border rounded dark:bg-slate-800 dark:border-slate-700"
+              className="form-control w-full p-2 border rounded dark:bg-slate-800 dark:border-slate-700 text-sm"
               required
             />
           </div>
@@ -103,12 +130,13 @@ const EditAccountModal = ({ isOpen, onClose, data, token }) => {
               value={formData.username}
               onChange={handleChange}
               placeholder="Ex: apoio_adeildo"
-              className="form-control w-full p-2 border rounded dark:bg-slate-800 dark:border-slate-700"
+              className="form-control w-full p-2 border rounded dark:bg-slate-800 dark:border-slate-700 text-sm"
               required
             />
           </div>
         </div>
 
+        {/* Bloco 2: Tokens Sociais */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-1">Instagram Account ID (API)</label>
@@ -117,7 +145,7 @@ const EditAccountModal = ({ isOpen, onClose, data, token }) => {
               name="igAccount"
               value={formData.igAccount}
               onChange={handleChange}
-              className="form-control w-full p-2 border rounded dark:bg-slate-800 dark:border-slate-700"
+              className="form-control w-full p-2 border rounded dark:bg-slate-800 dark:border-slate-700 text-sm"
             />
           </div>
           <div>
@@ -127,7 +155,7 @@ const EditAccountModal = ({ isOpen, onClose, data, token }) => {
               name="igToken"
               value={formData.igToken}
               onChange={handleChange}
-              className="form-control w-full p-2 border rounded dark:bg-slate-800 dark:border-slate-700"
+              className="form-control w-full p-2 border rounded dark:bg-slate-800 dark:border-slate-700 text-sm"
             />
           </div>
         </div>
@@ -140,7 +168,7 @@ const EditAccountModal = ({ isOpen, onClose, data, token }) => {
               name="fbAccount"
               value={formData.fbAccount}
               onChange={handleChange}
-              className="form-control w-full p-2 border rounded dark:bg-slate-800 dark:border-slate-700"
+              className="form-control w-full p-2 border rounded dark:bg-slate-800 dark:border-slate-700 text-sm"
             />
           </div>
           <div>
@@ -150,12 +178,16 @@ const EditAccountModal = ({ isOpen, onClose, data, token }) => {
               name="fbToken"
               value={formData.fbToken}
               onChange={handleChange}
-              className="form-control w-full p-2 border rounded dark:bg-slate-800 dark:border-slate-700"
+              className="form-control w-full p-2 border rounded dark:bg-slate-800 dark:border-slate-700 text-sm"
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <hr className="my-4 border-slate-200 dark:border-slate-700" />
+        <h5 className="text-base font-medium text-slate-900 dark:text-white">Configurações de Design e Áudio (FFmpeg)</h5>
+
+        {/* Bloco 3: Parâmetros do Motor de Renderização */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium mb-1">Voice ID (ElevenLabs)</label>
             <input
@@ -163,33 +195,148 @@ const EditAccountModal = ({ isOpen, onClose, data, token }) => {
               name="voiceId"
               value={formData.voiceId}
               onChange={handleChange}
-              placeholder="Ex: y9CNRBALdlEecGD3RnmT"
-              className="form-control w-full p-2 border rounded dark:bg-slate-800 dark:border-slate-700"
+              placeholder="ID da Voz"
+              className="form-control w-full p-2 border rounded dark:bg-slate-800 dark:border-slate-700 text-sm"
             />
           </div>
-          
-          <div className="flex flex-col justify-end pb-2">
-            <span className="text-xs text-slate-400 dark:text-slate-500 italic block">
-              ℹ️ A pasta de assets/vídeos em background será:
-              <strong className="text-blue-500 ml-1">
-                {formData.username ? `src/shared/assets/videos/${formData.username.trim()}` : "..."}
-              </strong>
-            </span>
+          <div>
+            <label className="block text-sm font-medium mb-1">Fonte do Texto</label>
+            <input
+              type="text"
+              name="fontName"
+              value={formData.fontName}
+              onChange={handleChange}
+              placeholder="Ex: ArchivoBlack-Regular.ttf"
+              className="form-control w-full p-2 border rounded dark:bg-slate-800 dark:border-slate-700 text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Modelo de Post (Estático)</label>
+            <input
+              type="number"
+              name="postModel"
+              value={formData.postModel}
+              onChange={handleChange}
+              placeholder="Ex: 1"
+              className="form-control w-full p-2 border rounded dark:bg-slate-800 dark:border-slate-700 text-sm"
+            />
           </div>
         </div>
 
-        <div className="flex justify-end space-x-3 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Seletor de Cor Hexadecimal Dinâmico */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Cor da Caixa do Texto</label>
+            <div className="flex space-x-2 items-center">
+              <input 
+                type="color" 
+                name="boxColor" 
+                value={formData.boxColor} 
+                onChange={handleChange} 
+                className="h-9 w-9 border-0 rounded cursor-pointer bg-transparent flex-none" 
+              />
+              <input 
+                type="text" 
+                name="boxColor" 
+                value={formData.boxColor} 
+                onChange={handleChange} 
+                className="form-control w-full p-2 border rounded dark:bg-slate-800 dark:border-slate-700 text-sm" 
+                placeholder="#1E5A22" 
+              />
+            </div>
+          </div>
+
+          {/* Seletor Dropdown para Posição da Manchete */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Posição da Manchete</label>
+            <select 
+              name="positionManchete" 
+              value={formData.positionManchete} 
+              onChange={handleChange} 
+              className="form-control w-full p-2 border rounded dark:bg-slate-800 dark:border-slate-700 text-sm bg-white"
+            >
+              <option value="top">Topo (Top)</option>
+              <option value="bottom">Rodapé (Bottom)</option>
+            </select>
+          </div>
+
+          {/* Seletor Dropdown para Posição dos Créditos */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Posição dos Créditos</label>
+            <select 
+              name="positionCredits" 
+              value={formData.positionCredits} 
+              onChange={handleChange} 
+              className="form-control w-full p-2 border rounded dark:bg-slate-800 dark:border-slate-700 text-sm bg-white"
+            >
+              <option value="top">Topo (Top)</option>
+              <option value="bottom">Rodapé (Bottom)</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Box Informativo do Diretório */}
+        <div className="pb-1">
+          <span className="text-xs text-slate-400 dark:text-slate-500 italic block">
+            ℹ️ Pasta física vinculada para background: 
+            <strong className="text-blue-500 ml-1">
+              {formData.username ? `src/shared/assets/videos/${formData.username.trim()}` : "..."}
+            </strong>
+          </span>
+        </div>
+
+        <hr className="my-4 border-slate-200 dark:border-slate-700" />
+        <h5 className="text-base font-medium text-slate-900 dark:text-white">Prompts Customizados da IA</h5>
+
+        {/* Bloco 4: Caixas de Texto Expansíveis (Textareas) para Engenharia de Prompt */}
+        <div className="space-y-3">
+          <div>
+            <label className="block text-sm font-medium mb-1">Prompt do Roteiro (Reels)</label>
+            <textarea 
+              name="promptReels" 
+              value={formData.promptReels} 
+              onChange={handleChange} 
+              className="form-control w-full p-2.5 border rounded dark:bg-slate-800 dark:border-slate-700 text-sm resize-y min-h-[90px]" 
+              placeholder="Escreva as diretrizes do roteiro narrado pela IA..."
+            ></textarea>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Prompt da Manchete</label>
+            <textarea 
+              name="promptManchete" 
+              value={formData.promptManchete} 
+              onChange={handleChange} 
+              className="form-control w-full p-2.5 border rounded dark:bg-slate-800 dark:border-slate-700 text-sm resize-y min-h-[70px]" 
+              placeholder="Diretrizes para gerar o título sobreposto no vídeo..."
+            ></textarea>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Prompt da Legenda</label>
+            <textarea 
+              name="promptLegenda" 
+              value={formData.promptLegenda} 
+              onChange={handleChange} 
+              className="form-control w-full p-2.5 border rounded dark:bg-slate-800 dark:border-slate-700 text-sm resize-y min-h-[70px]" 
+              placeholder="Diretrizes de copy, CTAs e hashtags do corpo do post..."
+            ></textarea>
+          </div>
+        </div>
+
+        {/* Botões de Controle */}
+        <div className="flex justify-end space-x-3 mt-6 pt-2 border-t border-slate-100 dark:border-slate-700">
           <Button 
             type="button"
             text="Cancelar" 
-            className="bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-white hover:bg-slate-300 dark:hover:bg-slate-600" 
+            className="bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-white hover:bg-slate-300 dark:hover:bg-slate-600 text-sm" 
             onClick={onClose} 
             disabled={isLoading} 
           />
           <Button
             type="submit"
             text={isLoading ? "Salvando..." : "Salvar Alterações"}
-            className="btn-dark"
+            className="btn-dark text-sm"
             isLoading={isLoading}
           />
         </div>
